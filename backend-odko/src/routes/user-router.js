@@ -6,6 +6,7 @@ import { authorizationMiddleware } from '../middleware/authorization.js';
 import { validateEmailMiddleware } from '../middleware/validateEmail.js';
 import { getUsers } from '../controllers/users/get-all-users.js';
 import { login } from '../controllers/users/login.js';
+import { register } from '../controllers/users/register.js';
 
 export const userRouter = express.Router();
 
@@ -14,3 +15,4 @@ userRouter.post('/', validateEmailMiddleware, createUser);
 userRouter.put('/',authorizationMiddleware, updateUser)
 userRouter.delete('/',authorizationMiddleware, deleteUser)
 userRouter.post('/login', validateEmailMiddleware, login)
+userRouter.post('/register', validateEmailMiddleware, register)

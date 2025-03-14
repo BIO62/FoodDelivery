@@ -1,4 +1,4 @@
-"use client"; // Ensure this is at the top
+"use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,35 +12,49 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-//   const router = useRouter(); // Initialize useRouter here
+  const router = useRouter();
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Email and password are required.");
+      setSuccess("");
+      return;
+    }
+  
     try {
-      const response = await fetch("http://localhost:3000/user/login", {
+      const response = await fetch("http://localhost:5000/user/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
-
+      console.log('Response Data:', data); 
+  
       if (response.ok) {
-        const { token } = data; 
-        localStorage.setItem("token", token); 
-        setSuccess("Login successful!");
-        await fetchUserData();
-
- 
+        const { token } = data; // Make sure token is in the data
+        if (token) {
+          localStorage.setItem("token", token);
+          setSuccess("Login successful!");
+          setError("");
+          router.push("/user");
+        } else {
+          setError("Usernae or password буруу байна.");
+          setSuccess("");
+        }
       } else {
-        setError(data.message);
+        setError(data.message || "Login failed.");
         setSuccess("");
       }
     } catch (error) {
@@ -49,27 +63,43 @@ export function Login() {
       console.error("Login error:", error);
     }
   };
+  
 
-  const fetchUserData = async () => {
-    const token = localStorage.getItem("token");
+  const handleRegister = async () => {
+    if (!name || !email || !password) {
+      setError("All fields are required.");
+      setSuccess("");
+      return;
+    }
 
     try {
-      const response = await fetch("http://localhost:3000/user", {
-        method: "GET",
+      const response = await fetch("http://localhost:5000/user/register", {
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ name, email, password }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch user data");
-      }
-
       const data = await response.json();
-      console.log("User data:", data);
+
+      if (response.ok) {
+        setSuccess("Registration successful! You can now log in.");
+        setError("");
+      } else {
+        setError(data.message);
+        setSuccess("");
+      }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      setError("An error occurred. Please try again.");
+      setSuccess("");
+      console.error("Registration error:", error);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleLogin();
     }
   };
 
@@ -78,16 +108,62 @@ export function Login() {
       <Tabs defaultValue="account" className="w-[400px]">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="account">Login</TabsTrigger>
+          <TabsTrigger value="register">Register</TabsTrigger>
         </TabsList>
         <TabsContent value="account">
           <Card>
             <CardHeader>
-              <CardTitle>Account login</CardTitle>
-              <CardDescription>Test login section</CardDescription>
+              <CardTitle>Login</CardTitle>
+              <CardDescription>Log into your account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               {error && <div className="text-red-500">{error}</div>}
               {success && <div className="text-green-500">{success}</div>}
+              <div className="space-y-1">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleLogin}>Login</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        <TabsContent value="register">
+          <Card>
+            <CardHeader>
+              <CardTitle>Register</CardTitle>
+              <CardDescription>Create a new account</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {error && <div className="text-red-500">{error}</div>}
+              {success && <div className="text-green-500">{success}</div>}
+              <div className="space-y-1">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
               <div className="space-y-1">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -109,12 +185,19 @@ export function Login() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleLogin}>Login</Button>
+              <Button onClick={handleRegister}>Register</Button>
             </CardFooter>
           </Card>
         </TabsContent>
-        <TabsContent value="password"></TabsContent>
       </Tabs>
+      <div className="p-24">
+        <Image
+          src="/image/login.jpg"
+          alt="login img"
+          width={856}
+          height={904}
+        />
+      </div>
     </div>
   );
 }

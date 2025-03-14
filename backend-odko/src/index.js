@@ -6,7 +6,6 @@ import { mongooseConnect } from './utils/mongoose-connect.js';
 import { categoryRouter } from './routes/catergory-routes.js';
 import cors from 'cors';
 
-
 dotenv.config();
 
 const app = express(); 
@@ -24,7 +23,7 @@ app.use('/food', foodRouter);
 app.use('/category', categoryRouter);
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

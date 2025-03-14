@@ -1,17 +1,15 @@
-import { FoodModel } from '../../models/food.model.js'
-
 export const getFoods = async (req, res) => {
+    const { category } = req.query;
+
+    console.log("Category:", category); // Log the category
     try {
-        const foods = await FoodModel.find().populate(['category'])
+        const query = category ? { category } : {};
+        const foods = await FoodModel.find(query).populate('category');
 
-        res.json({ message: "success", data: foods })
+        console.log("Fetched foods:", foods); // Log the fetched foods
+        res.json({ message: "success", data: foods });
     } catch (err) {
-        res.status(403).json({ message: "Error occured" });
+        console.error("Error occurred:", err);
+        res.status(500).json({ message: "Error occurred" });
     }
-}
-
-// verify // Mail
-// reset-password // Mail
-
-// sign-in, sign-up, get-user, delete-user
-// category(CRUD), food(CRUD) => FoodOrder(CRUD)
+};

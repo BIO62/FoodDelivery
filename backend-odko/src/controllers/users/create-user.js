@@ -5,6 +5,13 @@ export const createUser = async (req, res) => {
   try {
     const { name, email, password } = req.body; 
     const saltRounds = 10;
+
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists." });
+    }
+
     const hashPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser = await UserModel.create({
