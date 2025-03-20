@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DropdownMenuCheckboxes } from "./dropmenu";
-
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -14,9 +13,10 @@ import {
 } from "@/components/ui/carousel";
 
 const Header = () => {
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [, setFoods] = useState<any[]>([]);
   const [, setError] = useState<string | null>(null);
-  const [,setSelectedCategory] = useState<string | null>(null);
+  const [, setSelectedCategory] = useState<string | null>(null);
   const router = useRouter();
 
   const fetchFoodCategories = async () => {
@@ -41,7 +41,7 @@ const Header = () => {
       console.log("Fetched categories:", data);
 
       if (Array.isArray(data)) {
-        setCategories(data);
+        setCategories(data); 
       } else {
         throw new Error("Fetched data is not an array.");
       }
@@ -53,12 +53,42 @@ const Header = () => {
     }
   };
 
+  const fetchFoodsByCategory = async (categoryId: string) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/foods/category?categoryId=${categoryId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch foods: ${errorText}`);
+      }
+      const data = await response.json();
+      console.log("Fetched foods:", data);
+      setFoods(data.data);
+    } catch (error) {
+      console.error("Error fetching foods:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load foods."
+      );
+    }
+  };
+
   useEffect(() => {
     fetchFoodCategories();
   }, []);
 
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId);
+    fetchFoodsByCategory(categoryId);
   };
 
   const handleLoginClick = () => {
@@ -95,7 +125,6 @@ const Header = () => {
             />
           </div>
 
-          {/* Text heseg */}
           <div className="relative z-10 flex items-center justify-center h-full bg-black bg-opacity-40">
             <div className="text-white text-center p-4">
               <h2 className="text-2xl font-bold">Хоол захиалга</h2>
@@ -104,24 +133,21 @@ const Header = () => {
           </div>
         </div>
         <div>
-        <h2 className="text-2xl w-4/5 mx-auto mt-10  text-white font-bold">Food Categories</h2>
-          <Carousel className=" mt-5 w-4/5 mx-auto">
+          <h2 className="text-2xl w-4/5 mx-auto mt-10 text-white font-bold">Food Categories</h2>
+          <Carousel className="mt-5 w-4/5 mx-auto">
             <CarouselContent className="-ml-1">
-              {categories.map((categoryName, index) => (
+              {categories.map((category) => (
                 <CarouselItem
-                  key={index}
+                  key={category._id} 
                   className="lg:basis-1/6 xl:basis-1/9 cursor-pointer"
-                  onClick={() => handleCategoryClick(categoryName)}
+                  onClick={() => handleCategoryClick(category._id)} 
                 >
-                  <div className="p-1 w-56 h-17 ">
+                  <div className="p-1 w-56 h-17">
                     <Card>
                       <CardContent className="flex flex-col items-center justify-center p-2">
-                        <div
-                          className="flex justify-center  cursor-pointer"
-                          onClick={() => handleCategoryClick(categoryName)}
-                        >
+                        <div className="flex justify-center cursor-pointer">
                           <h3 className="text-lg font-semibold">
-                            {categoryName}
+                            {category.categoryName} 
                           </h3>
                         </div>
                       </CardContent>

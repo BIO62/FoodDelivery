@@ -17,7 +17,6 @@ app.use(express.json());
 // Connect to MongoDB
 mongooseConnect();
 
-// Set up routes
 app.use('/user', userRouter);
 app.use('/food', foodRouter);
 app.use('/category', categoryRouter);
